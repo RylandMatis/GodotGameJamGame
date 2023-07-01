@@ -20,7 +20,7 @@ const GRAVITY = 20
 func _ready():
 	update_animation_parameters(starting_direction)
 	var d = dialogue.instantiate()
-	d.messages = [\"This should be \\n easy!\"]
+	d.messages = [\"I love \\n waffles!\"]
 	add_child(d)
 	set_position(Vector2(-5,480))
 func _physics_process(_delta):
