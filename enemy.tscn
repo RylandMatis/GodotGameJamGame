@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://bbbj04kuwgaby"]
+
+[ext_resource type="Script" path="res://Enemy.gd" id="1_xvw4o"]
+[ext_resource type="Texture2D" uid="uid://07c3yloqq83p" path="res://0x72_DungeonTilesetII_v1.6/0x72_DungeonTilesetII_v1.6/frames/goblin_idle_anim_f0.png" id="2_7xk40"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l88wt"]
+size = Vector2(88, 96)
+
+[node name="Enemy" type="Area2D"]
+position = Vector2(48, 0)
+script = ExtResource("1_xvw4o")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(484, 112)
+shape = SubResource("RectangleShape2D_l88wt")
+
+[node name="GoblinIdleAnimF0" type="Sprite2D" parent="."]
+position = Vector2(480, 80)
+scale = Vector2(10, 10)
+texture = ExtResource("2_7xk40")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

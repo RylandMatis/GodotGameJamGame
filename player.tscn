@@ -1,0 +1,242 @@
+[gd_scene load_steps=23 format=3 uid="uid://dw3yal1qv8v5i"]
+
+[ext_resource type="Texture2D" uid="uid://rx613qjvtoj6" path="res://spritesheet.png" id="1_m6q2j"]
+
+[sub_resource type="GDScript" id="GDScript_ekhym"]
+script/source = "extends CharacterBody2D
+
+var dialogue = preload(\"res://dialogue.tscn\")
+@export var move_speed : float = 1000
+@export var starting_direction : Vector2 = Vector2(0,1)
+@export var jump_impulse = 1000
+@export var vec = Vector2(1000,1000)
+var end_reached : bool = false
+
+@onready var animation_tree = $AnimationTree
+@onready var state_machine = animation_tree.get(\"parameters/playback\")
+const GRAVITY = 20
+	
+
+func _ready():
+	update_animation_parameters(starting_direction)
+	var d = dialogue.instantiate()
+	d.messages = [\"This should be \\n easy!\"]
+	add_child(d)
+	set_position(Vector2(-5,480))
+func _physics_process(_delta):
+	var input_direction = Vector2(
+		Input.get_action_strength(\"right\"),
+		0
+	)
+
+	if (Input.is_key_pressed(KEY_SPACE) && %Timer.is_stopped() && vec[1] > 120) :
+		vec = get_node(\"/root/GameLevel/Player/\").global_position
+		set_position(Vector2(vec[0],vec[1] - 120))
+		%Timer.start()
+		print(vec)
+	if (Input.is_key_pressed(KEY_SPACE) && %Timer.is_stopped() && ceil(global_position.x) == 1025) :
+		set_position(Vector2(1200, 480))
+		var d = dialogue.instantiate()
+		d.messages = [\"Booyah!!!!\"]
+		add_child(d)
+	if (Input.is_key_pressed(KEY_SPACE) && %Timer.is_stopped() && ceil(vec[1]) == 120):
+		vec = get_node(\"/root/GameLevel/Player/\").global_position
+		set_position(Vector2(vec[0],480))
+		vec = Vector2(vec[0],480)
+		%Timer.start()
+	if (ceil(global_position.x) == 2625 && !end_reached):
+		var d = dialogue.instantiate()
+		d.messages = [\"I did it!\"]
+		add_child(d)
+		end_reached = true
+	
+	
+	
+	velocity = input_direction * move_speed
+	
+	move_and_slide()
+	pick_new_state()
+func update_animation_parameters(move_input: Vector2):
+	if(move_input != Vector2.ZERO  ) :
+		animation_tree.set(\"parameters/doc_idle/blend_position\", move_input)
+		animation_tree.set(\"parameters/doc_run/blend_position\", move_input)
+
+func pick_new_state() :
+	if (velocity != Vector2.ZERO):
+		state_machine.travel(\"doc_run\")
+	else:
+		state_machine.travel(\"doc_idle\")
+
+
+
+
+func _on_wall_body_entered(body):
+	if (body.is_in_group(\"Player\")):
+		print(\"amongus\")
+		var d = dialogue.instantiate()
+		d.messages = [\"Oh look, a wall!\"]
+		add_child(d)
+	
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5owp3"]
+size = Vector2(180, 202)
+
+[sub_resource type="Animation" id="Animation_vy6mx"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_28dru"]
+resource_name = "idle"
+length = 0.80001
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_eg7n5"]
+resource_name = "doc_run"
+length = 0.80001
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [4, 5, 6, 7]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fp23d"]
+_data = {
+"RESET": SubResource("Animation_vy6mx"),
+"doc_idle": SubResource("Animation_28dru"),
+"doc_run": SubResource("Animation_eg7n5")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_g16ro"]
+animation = &"doc_idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_k2qpn"]
+animation = &"doc_idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_5332d"]
+animation = &"doc_idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_0oba4"]
+animation = &"doc_idle"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_pg5ln"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_g16ro")
+blend_point_0/pos = Vector2(0, 1.1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_k2qpn")
+blend_point_1/pos = Vector2(1.1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_5332d")
+blend_point_2/pos = Vector2(0, -1.1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_0oba4")
+blend_point_3/pos = Vector2(-1.1, 0)
+min_space = Vector2(-1.1, -1.1)
+max_space = Vector2(1.1, 1.1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_0f1nb"]
+animation = &"doc_run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_7c860"]
+animation = &"doc_run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rcio7"]
+animation = &"doc_run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_x33op"]
+animation = &"doc_run"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_w5ane"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_0f1nb")
+blend_point_0/pos = Vector2(0, 1.1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_7c860")
+blend_point_1/pos = Vector2(1.1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_rcio7")
+blend_point_2/pos = Vector2(0, -1.1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_x33op")
+blend_point_3/pos = Vector2(-1.1, 0)
+min_space = Vector2(-1.1, -1.1)
+max_space = Vector2(1.1, 1.1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_nagcy"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_qkg1y"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_8rxj5"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_nxgkk"]
+states/End/position = Vector2(989, 73)
+states/doc_idle/node = SubResource("AnimationNodeBlendSpace2D_pg5ln")
+states/doc_idle/position = Vector2(353, 100)
+states/doc_run/node = SubResource("AnimationNodeBlendSpace2D_w5ane")
+states/doc_run/position = Vector2(545, 102)
+transitions = ["Start", "doc_idle", SubResource("AnimationNodeStateMachineTransition_nagcy"), "doc_idle", "doc_run", SubResource("AnimationNodeStateMachineTransition_qkg1y"), "doc_run", "doc_idle", SubResource("AnimationNodeStateMachineTransition_8rxj5")]
+
+[sub_resource type="AnimationNodeStateMachinePlayback" id="AnimationNodeStateMachinePlayback_ua0vs"]
+
+[node name="Player" type="CharacterBody2D"]
+position = Vector2(-73, -30)
+scale = Vector2(0.5, 0.5)
+script = SubResource("GDScript_ekhym")
+move_speed = 800.0
+metadata/_edit_group_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(142, 50)
+shape = SubResource("RectangleShape2D_5owp3")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(136, 14)
+scale = Vector2(12, 12)
+texture = ExtResource("1_m6q2j")
+hframes = 8
+frame = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_fp23d")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+tree_root = SubResource("AnimationNodeStateMachine_nxgkk")
+anim_player = NodePath("../AnimationPlayer")
+active = true
+parameters/playback = SubResource("AnimationNodeStateMachinePlayback_ua0vs")
+parameters/doc_idle/blend_position = Vector2(0, 1)
+parameters/doc_run/blend_position = Vector2(0, 0)
+
+[node name="Timer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.443
+one_shot = true
