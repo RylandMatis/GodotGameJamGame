@@ -14,6 +14,7 @@ var current_char = 0
 
 func _ready():
 	start_dialogue()
+
 	
 
 func start_dialogue():
